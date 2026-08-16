@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
 <title>水剤MIX調製計算</title>
+
+<!-- PWA（ホーム画面追加時に独立アプリとして扱われる） -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a4a40">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="水剤MIX">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>
   :root{
     --ink:#1c2b2e;
@@ -2848,6 +2858,18 @@ ${formatNum(roundedPerDoseFixed)}ml × ${totalDoses}回 = <b>${formatNum(finalTo
       .catch(()=>{ /* defaults.jsonが無い運用でも正常動作させる */ });
   })();
 })();
+</script>
+
+<script>
+// Service Worker登録（オフライン起動とPWA化のため）
+// file:// で開いた場合は登録できないので、その場合は静かに無視する。
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {
+      /* 登録できなくてもアプリ自体は通常どおり動作する */
+    });
+  });
+}
 </script>
 
 </body>

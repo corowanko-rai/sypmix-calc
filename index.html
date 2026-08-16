@@ -179,7 +179,7 @@
     border-bottom:1px solid var(--line);
     font-size:14px;
     font-weight:600;
-    padding:4px 2px;
+    padding:4px 26px 4px 2px;
     background:transparent;
     color:var(--ink);
   }
@@ -188,15 +188,47 @@
     border-bottom:2px solid var(--accent);
   }
   .drug-name-input::placeholder{color:#b7b0a0;font-weight:500;}
-  .remove-btn{
+  .name-field-wrap{
+    position:relative;
+    flex:1;
+  }
+  .clear-name-btn{
+    position:absolute;
+    right:2px;
+    top:50%;
+    transform:translateY(-50%);
     border:none;
     background:transparent;
-    color:var(--warn);
-    font-size:18px;
+    color:#b7ac8f;
+    font-size:14px;
     line-height:1;
-    padding:4px 6px;
+    padding:4px;
     cursor:pointer;
+    display:none;
   }
+  .name-field-wrap.has-value .clear-name-btn{display:block;}
+  .clear-name-btn:active{color:var(--warn);}
+  .remove-btn{
+    position:absolute;
+    top:-9px;
+    right:-9px;
+    width:26px;
+    height:26px;
+    border:1.5px solid #fff;
+    border-radius:50%;
+    background:var(--warn);
+    color:#fff;
+    font-size:13px;
+    line-height:1;
+    padding:0;
+    cursor:pointer;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:2;
+  }
+  .remove-btn:active{background:#9a3a24;}
 
   .name-chips{
     display:flex;
@@ -591,6 +623,49 @@
     color:var(--warn);
     margin-bottom:8px;
   }
+
+  /* --- 設定のバックアップ・復元 --- */
+  .backup-note{
+    font-size:11.5px;
+    line-height:1.7;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+  }
+  .backup-btn{
+    width:100%;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+    font-size:13px;
+    font-weight:700;
+    padding:11px;
+    border-radius:8px;
+    cursor:pointer;
+    margin-bottom:8px;
+  }
+  .backup-btn.export{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+    color:var(--accent-deep);
+  }
+  .backup-btn:active{background:#efece1;}
+  .backup-toast{
+    font-size:12px;
+    font-weight:700;
+    color:var(--accent-deep);
+    margin-top:6px;
+    display:none;
+  }
+  .backup-toast.show{display:block;}
+  .backup-toast.error{color:var(--warn);}
+  .defaults-info{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+    font-size:11.5px;
+    color:var(--ink-soft);
+    line-height:1.7;
+  }
   .section-label-row{
     display:flex;
     align-items:center;
@@ -946,17 +1021,37 @@
   .result-line{
     display:flex;
     justify-content:space-between;
-    align-items:baseline;
+    align-items:flex-start;
+    gap:10px;
     padding:6px 0;
     border-bottom:1px dotted var(--line);
     font-size:13.5px;
   }
   .result-line:last-of-type{border-bottom:none;}
-  .result-line .label{color:var(--ink-soft);}
+  .result-line .label{
+    color:var(--ink-soft);
+    flex:1;
+    min-width:0;
+  }
   .result-line .value{
     font-family:var(--mono);
     font-weight:700;
     color:var(--ink);
+    flex-shrink:0;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .result-line .value.value-plain{
+    font-weight:500;
+    color:var(--ink-soft);
+  }
+  .result-line .value-sub{
+    display:block;
+    font-size:11px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-top:1px;
+    white-space:nowrap;
   }
   .result-hero{
     margin-top:10px;
@@ -1028,62 +1123,12 @@
   <button class="rp-clear-btn" id="rpClearBtn" type="button">クリア</button>
 </div>
 
-<!-- 患者情報（年齢・体重） -->
-<div class="patient-card">
-  <div class="patient-row">
-    <div class="patient-field">
-      <label>年齢</label>
-      <input type="number" inputmode="decimal" id="patientAge" min="0" step="0.1" placeholder="—">
-      <div class="age-unit-toggle" id="ageUnitToggle">
-        <button type="button" class="age-unit-btn active" data-unit="year">歳</button>
-        <button type="button" class="age-unit-btn" data-unit="month">ヶ月</button>
-      </div>
-    </div>
-    <div class="patient-field">
-      <label>体重</label>
-      <input type="number" inputmode="decimal" id="patientWeight" min="0" step="0.1" placeholder="—">
-      <span class="unit-suffix">kg</span>
-    </div>
-    <span class="patient-note">未入力でも調製計算は可能。入力すると鑑査が表示されます。</span>
-  </div>
-</div>
-
 <!-- 定型処方（選択） -->
 <div class="preset-card preset-card-select" id="presetSelectCard">
   <span class="section-label">定型処方（タップで一括入力）</span>
   <div class="preset-chips" id="presetChips"></div>
   <div class="preset-empty-note" id="presetEmptyNote">まだ保存された処方はありません。下部の「今の内容を保存」から登録できます。</div>
   <div class="preset-toast" id="presetToastTop"></div>
-</div>
-
-<!-- 分割・日数 -->
-<div class="card">
-  <div class="tap-row">
-    <div class="tap-group">
-      <div class="tap-group-title">分割数（分〇）</div>
-      <div class="tap-chips" id="divChips">
-        <div class="chip" data-val="1">分1</div>
-        <div class="chip" data-val="2">分2</div>
-        <div class="chip active" data-val="3">分3</div>
-        <div class="chip" data-val="4">分4</div>
-        <div class="custom-input-inline">
-          <input type="number" inputmode="numeric" id="divCustom" min="1" step="1" placeholder="他">
-        </div>
-      </div>
-    </div>
-    <div class="tap-group">
-      <div class="tap-group-title">日数</div>
-      <div class="tap-chips" id="dayChips">
-        <div class="chip" data-val="5">5日</div>
-        <div class="chip active" data-val="7">7日</div>
-        <div class="chip" data-val="10">10日</div>
-        <div class="chip" data-val="14">14日</div>
-        <div class="custom-input-inline">
-          <input type="number" inputmode="numeric" id="dayCustom" min="1" step="1" placeholder="他">
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- 薬剤リスト -->
@@ -1119,6 +1164,59 @@
   </div>
 </div>
 
+<!-- 結果 -->
+<div id="resultArea"></div>
+
+<!-- 分割・日数 -->
+<div class="card">
+  <div class="tap-row">
+    <div class="tap-group">
+      <div class="tap-group-title">分割数（分〇）</div>
+      <div class="tap-chips" id="divChips">
+        <div class="chip" data-val="1">分1</div>
+        <div class="chip" data-val="2">分2</div>
+        <div class="chip active" data-val="3">分3</div>
+        <div class="chip" data-val="4">分4</div>
+        <div class="custom-input-inline">
+          <input type="number" inputmode="numeric" id="divCustom" min="1" step="1" placeholder="他">
+        </div>
+      </div>
+    </div>
+    <div class="tap-group">
+      <div class="tap-group-title">日数</div>
+      <div class="tap-chips" id="dayChips">
+        <div class="chip" data-val="5">5日</div>
+        <div class="chip active" data-val="7">7日</div>
+        <div class="chip" data-val="10">10日</div>
+        <div class="chip" data-val="14">14日</div>
+        <div class="custom-input-inline">
+          <input type="number" inputmode="numeric" id="dayCustom" min="1" step="1" placeholder="他">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 患者情報（年齢・体重） -->
+<div class="patient-card">
+  <div class="patient-row">
+    <div class="patient-field">
+      <label>年齢</label>
+      <input type="number" inputmode="decimal" id="patientAge" min="0" step="0.1" placeholder="—">
+      <div class="age-unit-toggle" id="ageUnitToggle">
+        <button type="button" class="age-unit-btn active" data-unit="year">歳</button>
+        <button type="button" class="age-unit-btn" data-unit="month">ヶ月</button>
+      </div>
+    </div>
+    <div class="patient-field">
+      <label>体重</label>
+      <input type="number" inputmode="decimal" id="patientWeight" min="0" step="0.1" placeholder="—">
+      <span class="unit-suffix">kg</span>
+    </div>
+    <span class="patient-note">未入力でも調製計算は可能。入力すると鑑査が表示されます。</span>
+  </div>
+</div>
+
 <!-- 用量鑑査ルールの管理 -->
 <div class="card">
   <div class="section-label-row">
@@ -1132,9 +1230,6 @@
   </div>
 </div>
 
-<!-- 結果 -->
-<div id="resultArea"></div>
-
 <!-- 定型処方（保存） -->
 <div class="preset-card">
   <span class="section-label">今の内容を定型処方として保存</span>
@@ -1143,6 +1238,22 @@
     <button class="save-preset-btn" id="savePresetBtn" type="button">今の内容を保存</button>
   </div>
   <div class="preset-toast" id="presetToast">保存しました</div>
+</div>
+
+<!-- 設定のバックアップ・復元 -->
+<div class="card">
+  <div class="section-label-row">
+    <span class="section-label">設定のバックアップ・復元</span>
+    <span class="manage-toggle" id="backupToggle">開く</span>
+  </div>
+  <div class="manage-panel" id="backupPanel">
+    <div class="backup-note">定型処方・候補薬剤リスト・鑑査ルール・賦形設定をまとめて保存／復元できます。ブラウザのデータ削除に備え、設定を作り込んだらバックアップを取っておくと安心です。</div>
+    <button class="backup-btn export" id="exportBtn" type="button">設定をファイルに書き出す（バックアップ）</button>
+    <button class="backup-btn" id="importBtn" type="button">バックアップファイルから復元</button>
+    <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;">
+    <div id="defaultsRow"></div>
+    <div class="backup-toast" id="backupToast"></div>
+  </div>
 </div>
 
 <div class="footer-tip">タップは入力を早くするための候補です。<br>すべての値は直接入力・上書きできます。</div>
@@ -1483,10 +1594,13 @@
       card.innerHTML = `
         <div class="drug-head">
           <span class="drug-index">${idx+1}</span>
-          <input class="drug-name-input" type="text" placeholder="薬剤名を入力（任意）" value="${escapeHtml(drug.name)}">
+          <div class="name-field-wrap${drug.name ? ' has-value' : ''}">
+            <input class="drug-name-input" type="text" placeholder="薬剤名を入力（任意）" value="${escapeHtml(drug.name)}">
+            <button class="clear-name-btn" type="button" title="薬剤名をクリア">✕</button>
+          </div>
           <span class="empty-tag" style="${isEmpty ? '' : 'display:none;'}">未入力（対象外）</span>
-          ${state.drugs.length > 1 ? '<button class="remove-btn" type="button" title="削除">✕</button>' : ''}
         </div>
+        ${state.drugs.length > 1 ? '<button class="remove-btn" type="button" title="このカードを削除">✕</button>' : ''}
         <div class="name-chips">
           ${NAME_SUGGESTIONS.map(n=>`<span class="name-chip${drug.name===n ? ' active' : ''}" data-name="${escapeHtml(n)}">${escapeHtml(n)}</span>`).join('')}
         </div>
@@ -1503,10 +1617,25 @@
       `;
 
       // イベント: 薬剤名
-      card.querySelector('.drug-name-input').addEventListener('input', (e)=>{
+      const nameInput = card.querySelector('.drug-name-input');
+      const nameWrap = card.querySelector('.name-field-wrap');
+      nameInput.addEventListener('input', (e)=>{
         drug.name = e.target.value;
+        nameWrap.classList.toggle('has-value', !!drug.name);
         syncActiveRpSnapshot();
         updateDrugCardDisplays(); // 薬剤名変更で用量根拠(添文)が変わるため
+      });
+
+      // イベント: 薬剤名クリア（カードはそのまま残し、名前欄だけ空にする）
+      const clearNameBtn = card.querySelector('.clear-name-btn');
+      clearNameBtn.addEventListener('click', ()=>{
+        drug.name = '';
+        nameInput.value = '';
+        nameWrap.classList.remove('has-value');
+        card.querySelectorAll('.name-chip').forEach(c=>c.classList.remove('active'));
+        syncActiveRpSnapshot();
+        updateDrugCardDisplays();
+        nameInput.focus();
       });
 
       // イベント: 候補タップ（同じ名前を再タップで解除）
@@ -1514,7 +1643,8 @@
         chip.addEventListener('click', ()=>{
           const name = chip.dataset.name;
           drug.name = (drug.name === name) ? '' : name;
-          card.querySelector('.drug-name-input').value = drug.name;
+          nameInput.value = drug.name;
+          nameWrap.classList.toggle('has-value', !!drug.name);
           card.querySelectorAll('.name-chip').forEach(c=>{
             c.classList.toggle('active', c.dataset.name === drug.name && drug.name !== '');
           });
@@ -1564,10 +1694,10 @@
     }
   }
 
-  // 各薬剤カードの「合計ml」「未入力タグ」「用量根拠（添文）」表示だけを更新する。
+  // 各薬剤カードの「1日量×日数分」「未入力タグ」「用量根拠（添文）」表示だけを更新する。
   // input要素そのものは触らないため、入力中の値やカーソル位置、IME状態を壊さない。
+  // ここは各薬剤単独の量を表示する（累積量は結果パネル側の調製手順でのみ表示する）。
   function updateDrugCardDisplays(){
-    let cumulative = 0;
     const cards = Array.from(drugListEl.querySelectorAll('.drug-card'));
     cards.forEach((card, idx)=>{
       const drug = state.drugs[idx];
@@ -1578,12 +1708,14 @@
       const emptyTag = card.querySelector('.empty-tag');
       if(emptyTag) emptyTag.style.display = isEmpty ? '' : 'none';
 
+      const nameWrap = card.querySelector('.name-field-wrap');
+      if(nameWrap) nameWrap.classList.toggle('has-value', !!drug.name);
+
       const totalForDrug = (!isEmpty) ? (drug.perDay * state.days) : null;
-      if(totalForDrug != null) cumulative += totalForDrug;
-      const cumulativeLabel = isEmpty ? '—' : formatNum(cumulative);
+      const totalLabel = isEmpty ? '—' : formatNum(totalForDrug);
 
       const badge = card.querySelector('.total-badge');
-      if(badge) badge.textContent = `${idx===0 ? '' : '計 '}${cumulativeLabel} ml`;
+      if(badge) badge.textContent = `${totalLabel} ml`;
 
       const doseRef = buildDoseRefLines(drug.name, drug.perDay);
       const slot = card.querySelector('.dose-ref-slot');
@@ -2167,27 +2299,31 @@
 
     // 賦形に必要な水の量
     const waterVolume = Math.round((finalTotal - sumDrugs) * 1000) / 1000;
+    const needsWater = waterVolume > 1e-9; // 浮動小数点誤差を考慮し、実質0は「不要」扱い
 
     let html = '';
 
     html += `<div class="result-panel">
       <div class="result-title"><span>調製手順</span><span>${drugTotals.length}剤MIX / 分${state.div} / ${state.days}日分</span></div>`;
 
+    let cumulativeInResult = 0;
     drugTotals.forEach((d,i)=>{
+      cumulativeInResult += d.total;
+      const subLabel = (i === 0) ? '' : `（薬剤量 ${formatNum(d.total)}ml）`;
       html += `<div class="result-line">
         <span class="label">${i+1}. ${escapeHtml(d.name)}（${formatNum(d.perDay)}ml/日）を入れる</span>
-        <span class="value">${formatNum(d.total)} ml</span>
+        <span class="value">${formatNum(cumulativeInResult)} ml${subLabel ? `<span class="value-sub">${subLabel}</span>` : ''}</span>
       </div>`;
     });
 
     html += `<div class="result-line">
       <span class="label">水で賦形して総量</span>
-      <span class="value">${formatNum(finalTotal)} ml</span>
+      <span class="value${needsWater ? '' : ' value-plain'}">${formatNum(finalTotal)} ml</span>
     </div>`;
 
     html += `<div class="result-line">
       <span class="label">└ 加える水の量</span>
-      <span class="value">${waterVolume >= 0 ? formatNum(waterVolume) : '⚠ 負値'} ml</span>
+      <span class="value${waterVolume < 0 ? '' : (needsWater ? '' : ' value-plain')}">${waterVolume < 0 ? '⚠ 負値' : (needsWater ? `${formatNum(waterVolume)} ml` : '不要（0ml）')}</span>
     </div>`;
 
     html += `<div class="result-hero">
@@ -2504,6 +2640,213 @@ ${formatNum(roundedPerDoseFixed)}ml × ${totalDoses}回 = <b>${formatNum(finalTo
   // 初回ロード時、1つ目の薬剤の1日量入力に自動フォーカス（入力を即座に始められるように）
   const firstInput = drugListEl.querySelector('.perday-input');
   if(firstInput) firstInput.focus();
+
+  // ---------- 設定のバックアップ・復元 ----------
+  const BACKUP_FORMAT = 'mixCalcBackup';
+  const BACKUP_VERSION = 1;
+
+  const backupToggle = document.getElementById('backupToggle');
+  const backupPanel = document.getElementById('backupPanel');
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importFileInput = document.getElementById('importFileInput');
+  const backupToast = document.getElementById('backupToast');
+  const defaultsRow = document.getElementById('defaultsRow');
+
+  backupToggle.addEventListener('click', ()=>{
+    const willOpen = !backupPanel.classList.contains('open');
+    backupPanel.classList.toggle('open', willOpen);
+    backupToggle.textContent = willOpen ? '閉じる' : '開く';
+  });
+
+  function showBackupToast(msg, isError){
+    backupToast.textContent = msg;
+    backupToast.classList.toggle('error', !!isError);
+    backupToast.classList.add('show');
+    setTimeout(()=>backupToast.classList.remove('show'), 3000);
+  }
+
+  // 現在の全設定を1つのオブジェクトにまとめる
+  function collectSettings(){
+    return {
+      format: BACKUP_FORMAT,
+      version: BACKUP_VERSION,
+      exportedAt: new Date().toISOString(),
+      round: state.round,
+      suggestions: NAME_SUGGESTIONS,
+      drugAuditRules: drugAuditRules,
+      presets: presets
+    };
+  }
+
+  // 設定オブジェクトをアプリに反映する。
+  // mode: 'replace'（全置き換え） | 'merge'（既存を残しつつ追加）
+  function applySettings(data, mode){
+    if(!data || typeof data !== 'object') return false;
+
+    if(mode === 'replace'){
+      if(typeof data.round === 'number' && data.round > 0){
+        state.round = data.round;
+      }
+      if(Array.isArray(data.suggestions)){
+        NAME_SUGGESTIONS = data.suggestions.slice();
+      }
+      if(data.drugAuditRules && typeof data.drugAuditRules === 'object'){
+        drugAuditRules = JSON.parse(JSON.stringify(data.drugAuditRules));
+      }
+      if(Array.isArray(data.presets)){
+        presets = JSON.parse(JSON.stringify(data.presets));
+      }
+    } else {
+      // マージ：既存にないものだけ追加する（今使っている設定を壊さない）
+      if(Array.isArray(data.suggestions)){
+        data.suggestions.forEach(n=>{
+          if(!NAME_SUGGESTIONS.includes(n)) NAME_SUGGESTIONS.push(n);
+        });
+      }
+      if(data.drugAuditRules && typeof data.drugAuditRules === 'object'){
+        Object.keys(data.drugAuditRules).forEach(name=>{
+          if(!drugAuditRules[name]){
+            drugAuditRules[name] = JSON.parse(JSON.stringify(data.drugAuditRules[name]));
+          }
+        });
+      }
+      if(Array.isArray(data.presets)){
+        data.presets.forEach(p=>{
+          if(!presets.some(existing => existing.name === p.name)){
+            presets.push(JSON.parse(JSON.stringify(p)));
+          }
+        });
+      }
+    }
+
+    // 保存して画面に反映
+    persist();
+    persistRules();
+    savePresets(presets);
+    syncChipUI('roundChips','roundCustom', state.round);
+    renderManageList();
+    renderRuleList();
+    renderPresetChips();
+    render();
+    return true;
+  }
+
+  // 書き出し
+  exportBtn.addEventListener('click', ()=>{
+    try{
+      const data = collectSettings();
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0,10).replace(/-/g,'');
+      a.href = url;
+      a.download = `水剤MIX調製計算_設定_${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url), 1000);
+      showBackupToast('設定を書き出しました。');
+    }catch(e){
+      showBackupToast('書き出しに失敗しました。', true);
+    }
+  });
+
+  // 復元
+  importBtn.addEventListener('click', ()=>{
+    importFileInput.click();
+  });
+
+  importFileInput.addEventListener('change', (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      let data = null;
+      try{
+        data = JSON.parse(reader.result);
+      }catch(err){
+        showBackupToast('ファイルを読み込めませんでした（JSON形式ではありません）。', true);
+        importFileInput.value = '';
+        return;
+      }
+      if(!data || data.format !== BACKUP_FORMAT){
+        showBackupToast('このアプリのバックアップファイルではないようです。', true);
+        importFileInput.value = '';
+        return;
+      }
+      const replace = confirm(
+        '復元方法を選んでください。\n\n' +
+        '「OK」＝すべて置き換える（今の設定は破棄されます）\n' +
+        '「キャンセル」＝追加のみ（今の設定は残し、ファイル側にしかないものを足します）'
+      );
+      applySettings(data, replace ? 'replace' : 'merge');
+      showBackupToast(replace ? '設定を復元しました（置き換え）。' : '設定を追加しました（マージ）。');
+      importFileInput.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- リポジトリ同梱の初期設定（defaults.json）----------
+  // アプリと同じ場所に defaults.json があれば読み込む。
+  // ・localStorageが空（初回利用）の場合のみ自動で初期値として採用する
+  // ・既に使い込んでいる端末の設定は勝手に上書きしない
+  // ・ファイルが無い場合は何もしない（ローカルファイル単体での利用でも壊れない）
+  let fetchedDefaults = null;
+
+  function isFirstRun(){
+    return !localStorage.getItem(STORAGE_KEY)
+        && !localStorage.getItem(RULES_STORAGE_KEY)
+        && !localStorage.getItem(PRESET_KEY);
+  }
+
+  function renderDefaultsRow(){
+    if(!fetchedDefaults){
+      defaultsRow.innerHTML = '';
+      return;
+    }
+    const count = {
+      presets: Array.isArray(fetchedDefaults.presets) ? fetchedDefaults.presets.length : 0,
+      rules: fetchedDefaults.drugAuditRules ? Object.keys(fetchedDefaults.drugAuditRules).length : 0,
+      names: Array.isArray(fetchedDefaults.suggestions) ? fetchedDefaults.suggestions.length : 0
+    };
+    defaultsRow.innerHTML = `
+      <div class="defaults-info">
+        共有の初期設定（defaults.json）が見つかりました。<br>
+        定型処方${count.presets}件／鑑査ルール${count.rules}件／候補薬剤${count.names}件
+      </div>
+      <button class="backup-btn" id="applyDefaultsBtn" type="button" style="margin-top:8px;">共有の初期設定を取り込む</button>
+    `;
+    const btn = document.getElementById('applyDefaultsBtn');
+    if(btn){
+      btn.addEventListener('click', ()=>{
+        const replace = confirm(
+          '共有の初期設定を取り込みます。\n\n' +
+          '「OK」＝すべて置き換える（この端末の設定は破棄されます）\n' +
+          '「キャンセル」＝追加のみ（この端末の設定は残します）'
+        );
+        applySettings(fetchedDefaults, replace ? 'replace' : 'merge');
+        showBackupToast(replace ? '共有の初期設定を取り込みました（置き換え）。' : '共有の初期設定を追加しました（マージ）。');
+      });
+    }
+  }
+
+  (function loadDefaultsJson(){
+    // file:// で開いた場合はfetchが失敗することがあるが、その場合は静かに無視する
+    fetch('defaults.json', {cache:'no-store'})
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if(!data || data.format !== BACKUP_FORMAT) return;
+        fetchedDefaults = data;
+        if(isFirstRun()){
+          // 初回利用時のみ自動適用（既存設定がある端末では何もしない）
+          applySettings(data, 'replace');
+        }
+        renderDefaultsRow();
+      })
+      .catch(()=>{ /* defaults.jsonが無い運用でも正常動作させる */ });
+  })();
 })();
 </script>
 
